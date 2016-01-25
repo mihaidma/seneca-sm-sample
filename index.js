@@ -20,33 +20,36 @@ seneca.add('role:content, context:document, cmd: triage', function(err, respond)
   respond(null, {command: 'execute command: role:content, context:document, cmd: approve_final'})
 })
 
-Async.series({
-  create_instance: function (callback) {
-    seneca.act("role: 'sm', create: 'instance'", config, function (err, context) {
-      console.log('created the state machine:', config.name)
-      callback(err)
-    })
-  },
-  verify_state: function (callback) {
-    seneca.act('role:' + config.name + ', get:context', function (err, context) {
-      console.log('current state: ', context.current_status)
-      callback(err)
-    })
-  },
-  triage_document: function (callback) {
-    console.log('change state to triage')
-    seneca.act('role:' + config.name + ', cmd: triage', function(err, context) {
-      console.log('state changed')
-      callback(err)
-    })
-  },
-  verify_triage_state: function (callback) {
-    seneca.act('role:' + config.name + ', get:context', function (err, context) {
-      console.log('current state: ', context.current_status)
-      callback(err)
-    })
-  }
-},
+function createInstance(callback) {
+  seneca.act("role: 'sm', create: 'instance'", config, function (err, context) {
+    console.log('created the state machine:', config.name)
+    callback(err)
+  })
+}
+
+function changeState(state, callback) {
+  console.log('change state to ', state)
+  seneca.act('role:' + config.name + ', cmd: ' + state, function(err, context) {
+    console.log('state changed')
+    callback(err)
+  })
+}
+
+function verifyState(callback) {
+  seneca.act('role:' + config.name + ', get:context', function (err, context) {
+    console.log('current state: ', context.current_status)
+    callback(err)
+  })
+}
+
+Async.series([
+  createInstance,
+  function (callback) { changeState('triage', callback) },
+  verifyState,
+  function (callback) { changeState('review', callback) },
+  verifyState,
+  // function (callback) { changeState('triage', callback) }
+  ],
 function (err, results) {
 //   console.log(err, results)
 })
