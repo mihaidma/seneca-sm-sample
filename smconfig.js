@@ -3,6 +3,11 @@ exports.config = {
   name: 'ContentScheduling',
 
   states: {
+    events: {
+      after: {
+        pattern: "role: 'content', context: 'document', cmd: 'save'"
+      }
+    },
     CREATE: {
       initState: true,
       defaults: {
@@ -34,7 +39,8 @@ exports.config = {
         approve: {
           pattern: "role: 'content', context: 'document', cmd: 'approve'",
           next: {
-            success: 'CONTENT_APPROVED'
+            success: 'CONTENT_APPROVED',
+            error: 'REVIEW_CONTENT'
           }
         }
       }
@@ -45,6 +51,12 @@ exports.config = {
           pattern: "role: 'content', context: 'document', cmd: 'schedule'",
           next: {
             success: 'CONTENT_SCHEDULED'
+          }
+        },
+        review: {
+          pattern: "role: 'content', context: 'document', cmd: 'review'",
+          next: {
+            success: 'REVIEW_CONTENT'
           }
         }
       }

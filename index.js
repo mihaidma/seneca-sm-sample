@@ -2,22 +2,32 @@
 var Async = require('async')
 var seneca = require('seneca')()
 seneca.use('seneca-sm')
+
 var config = require('./smconfig.js').config
 
 seneca.add('role:content, context:document, cmd: triage', function(err, respond) {
-  respond(null, {command: 'execute command: role:content, context:document, cmd: triage'})
+  console.log('- triage action executed')
+  respond(null, {command: '# executed command: role:content, context:document, cmd: triage'})
 })
 .add('role:content, context:document, cmd: review', function(err, respond) {
-  respond(null, {command: 'execute command: role:content, context:document, cmd: review'})
+  console.log('- review action executed')
+  respond(null, {command: '# executed command: role:content, context:document, cmd: review'})
 })
 .add('role:content, context:document, cmd: approve', function(err, respond) {
-  respond(null, {command: 'execute command: role:content, context:document, cmd: approve'})
+  console.log('- approve action executed')
+  respond(null, {command: '# executed command: role:content, context:document, cmd: approve'})
 })
 .add('role:content, context:document, cmd: schedule', function(err, respond) {
-  respond(null, {command: 'execute command: role:content, context:document, cmd: schedule'})
+  console.log('- schedule action executed')
+  respond(null, {command: '# executed command: role:content, context:document, cmd: schedule'})
 })
 .add('role:content, context:document, cmd: approve_final', function(err, respond) {
-  respond(null, {command: 'execute command: role:content, context:document, cmd: approve_final'})
+  console.log('- approve_final action executed')
+  respond(null, {command: '# executed command: role:content, context:document, cmd: approve_final'})
+})
+.add('role:content, context:document, cmd: save', function(err, respond) {
+  console.log('- save state')
+  respond(null, {command: '# executed command: role:content, context:document, cmd: save'})
 })
 
 function createInstance(callback) {
@@ -28,28 +38,38 @@ function createInstance(callback) {
 }
 
 function changeState(state, callback) {
-  console.log('change state to ', state)
+  console.log('Command: change state to ', state)
   seneca.act('role:' + config.name + ', cmd: ' + state, function(err, context) {
-    console.log('state changed')
+    console.log('State successfully changed to:', state)
     callback(err)
   })
 }
 
-function verifyState(callback) {
-  seneca.act('role:' + config.name + ', get:context', function (err, context) {
-    console.log('current state: ', context.current_status)
+function verifyState(state, smName, callback) {
+  seneca.act('role:' + smName + ', get:context', function (err, context) {
+    console.log('Verify state: current state: ', context.current_status)
     callback(err)
   })
 }
 
-Async.series([
+Async.series({
   createInstance,
-  function (callback) { changeState('triage', callback) },
-  verifyState,
-  function (callback) { changeState('review', callback) },
-  verifyState,
-  // function (callback) { changeState('triage', callback) }
-  ],
+  verifyCreate: function (callback) { verifyState('CREATE', config.name, callback) },
+  executeTriage: function (callback) { changeState('triage', callback) },
+  verifyTriage: function (callback) { verifyState('TRIAGE_CONTENT', config.name, callback) },
+  executeReview: function (callback) { changeState('review', callback) },
+  verifyReview: function (callback) { verifyState('REVIEW_CONTENT', config.name, callback) },
+  executeApprove: function (callback) { changeState('approve', callback) },
+  verifyApprove: function (callback) { verifyState('CONTENT_APPROVED', config.name, callback) },
+  executeReview2: function (callback) { changeState('review', callback) },
+  verifyReview2: function (callback) { verifyState('REVIEW_CONTENT', config.name, callback) },
+  executeApprove2: function (callback) { changeState('approve', callback) },
+  verifyApprove2: function (callback) { verifyState('CONTENT_APPROVED', config.name, callback) },
+  executeSchedule: function (callback) { changeState('schedule', callback) },
+  verifySchedule: function (callback) { verifyState('CONTENT_SCHEDULED', config.name, callback) }
+},
 function (err, results) {
-//   console.log(err, results)
+  if (err) {
+    console.log("error: ", err)
+  }
 })
