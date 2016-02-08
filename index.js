@@ -52,6 +52,14 @@ function verifyState(state, smName, callback) {
   })
 }
 
+console.log('                                 state machine flow')
+console.log('.')
+console.log('                                                       [review()]')
+console.log('                                                ----<--------<-----<----')
+console.log('      [create()]               [review()]       |       [approve()]     |         [schedule()]')
+console.log('CREATE---------->TRIAGE_CONTENT---------->REVIEW_CONTENT---------->CONTENT_APPROVED----------->CONTENT_SCHEDULED')
+console.log('.')
+
 Async.series({
   createInstance,
   verifyCreate: function (callback) { verifyState('CREATE', config.name, callback) },
