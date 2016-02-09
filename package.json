@@ -11,6 +11,6 @@
   "devDependencies": {
     "async": "1.x.x",
     "seneca": "plugin",
-    "seneca-sm": "https://github.com/mirceaalexandru/seneca-sm"
+    "seneca-sm": "1.x.x"
   }
 }

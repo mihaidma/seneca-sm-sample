@@ -39,14 +39,14 @@ function createInstance(callback) {
 
 function changeState(state, callback) {
   console.log('Command: change state to ', state)
-  seneca.act('role:' + config.name + ', cmd: ' + state, function(err, context) {
+  seneca.act('role: sm, cmd: ' + state, {sm_name: config.name}, function(err, context) {
     console.log('State successfully changed to:', state)
     callback(err)
   })
 }
 
-function verifyState(state, smName, callback) {
-  seneca.act('role:' + smName + ', get:context', function (err, context) {
+function verifyState(state, callback) {
+  seneca.act('role: sm, get:context', {sm_name: config.name}, function (err, context) {
     console.log('Verify state: current state: ', context.current_status)
     callback(err)
   })
@@ -62,19 +62,19 @@ console.log('.')
 
 Async.series({
   createInstance,
-  verifyCreate: function (callback) { verifyState('CREATE', config.name, callback) },
+  verifyCreate: function (callback) { verifyState('CREATE', callback) },
   executeTriage: function (callback) { changeState('triage', callback) },
-  verifyTriage: function (callback) { verifyState('TRIAGE_CONTENT', config.name, callback) },
+  verifyTriage: function (callback) { verifyState('TRIAGE_CONTENT', callback) },
   executeReview: function (callback) { changeState('review', callback) },
-  verifyReview: function (callback) { verifyState('REVIEW_CONTENT', config.name, callback) },
+  verifyReview: function (callback) { verifyState('REVIEW_CONTENT', callback) },
   executeApprove: function (callback) { changeState('approve', callback) },
-  verifyApprove: function (callback) { verifyState('CONTENT_APPROVED', config.name, callback) },
+  verifyApprove: function (callback) { verifyState('CONTENT_APPROVED', callback) },
   executeReview2: function (callback) { changeState('review', callback) },
-  verifyReview2: function (callback) { verifyState('REVIEW_CONTENT', config.name, callback) },
+  verifyReview2: function (callback) { verifyState('REVIEW_CONTENT', callback) },
   executeApprove2: function (callback) { changeState('approve', callback) },
-  verifyApprove2: function (callback) { verifyState('CONTENT_APPROVED', config.name, callback) },
+  verifyApprove2: function (callback) { verifyState('CONTENT_APPROVED', callback) },
   executeSchedule: function (callback) { changeState('schedule', callback) },
-  verifySchedule: function (callback) { verifyState('CONTENT_SCHEDULED', config.name, callback) }
+  verifySchedule: function (callback) { verifyState('CONTENT_SCHEDULED', callback) }
 },
 function (err, results) {
   if (err) {
